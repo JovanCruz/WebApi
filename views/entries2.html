@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game List App Page</title>
+    <link href="main.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div id= "wrapper">
+            <h1>Here is the List</h1>
+            <div id="entries-list">
+
+            </div>
+    </div>
+
+    <script>
+        fetch('/getdata').then(function(response){
+            return response.json();
+        }).then(function(entries){
+            console.log(JSON.stringify(entries));
+            entries.entries.forEach(function(entry){
+                //document.getElementById('entries-list').innerHTML += "<br>" + entry.title;
+            
+                document.getElementById('entries-list').innerHTML += "<div class ='entries'><p>Game: "+ entry.title+"</p><p>Genre: "+entry.genre+"</p><p>Date: "+entry.date+"</p></div><br>"
+            
+            });
+        });
+    </script>
+</body>
+</html>

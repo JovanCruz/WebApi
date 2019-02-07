@@ -1,0 +1,12 @@
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: gray;
+
+}
+
+#wrapper{
+    width:900px;
+    margin: auto;
+    background-color: darkgray;
+    color:white;
+}
