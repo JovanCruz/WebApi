@@ -29,7 +29,9 @@ mongoose.connect("mongodb://localhost:27017/gameEntries", {
 });
 
 require('./models/Entry');
+require('./models/Users');
 var Entry = mongoose.model('Entries');
+var Users = mongoose.model('Users');
 
 app.engine('handlebars', exphbs({
     defaultLayout:'main'
@@ -66,15 +68,15 @@ app.use(function(req,res){
 app.use(methodOverride('_method'));
 
 //route to index.html
-router.get('/', function(req, res){
+router.get('/', ensureAuthenticated, function(req, res){
     //res.sendFile(path.join(__dirname+'/index.html'));
     //var title = "Welcome to the GameApp";
     res.render('index');
 });
 
 //Route to entries
-router.get('/entries',function(req, res){
-    res.render('gameentries/addgame');
+router.get('/entries', ensureAuthenticated, function(req, res){
+    res.render('gameentries/addgame', {user:req.user});
 });
 
 
@@ -83,7 +85,10 @@ router.get('/gameentries/editgame/:id', function(req,res){
     Entry.findOne({
         _id:req.params.id
     }).then(function(entry){
-        res.render('gameentries/editgame', {entry:entry});
+        res.render('gameentries/editgame', {
+            entry:entry,
+            user:req.user
+        });
     });
 });
 
@@ -110,14 +115,35 @@ router.get('/login',function(req, res){
 router.post('/login', function(req,res,next){
     passport.authenticate('local', {
         successRedirect:'/',
-        failureRedirect:'/login'
+        failureRedirect:'/users/register'
     })(req,res,next);
 });
 
+router.get('/logout', function(req, res){
+    req.logout();
+    res.redirect('/login');
+});
+
+//index route
 app.get('/', ensureAuthenticated, function(req,res){
     console.log("Request made from fetch");
-    Entry.find({}).then(function(entries){
-        res.render("index", {entries:entries})
+    Entry.find({user:req.user.id})
+    .then(function(entries){
+        res.render("index", {
+            entries:entries,
+            user:req.user
+        })
+    });
+});
+
+//gamers route
+app.get('/gamers', function(req,res){
+    console.log("Request made from fetch");
+    Users.find()
+    .then(function(users){
+        res.render("gamers", {
+            users:users
+        })
     });
 });
 
@@ -133,7 +159,8 @@ app.post('/addgame', function(req,res){
     console.log(req.body);
     var newEntry = {
         title:req.body.title,
-        genre:req.body.genre
+        genre:req.body.genre,
+        user:req.user.id
     }
 
     new Entry(newEntry).save().then(function(entry){
