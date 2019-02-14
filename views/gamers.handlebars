@@ -1,10 +1,11 @@
 
 <div class="jumbotron text-center">
-    <h1 class="text-center">Welcometo the GameApp Page</h1>
+    <h1 class="text-center">Welcome to the GameApp Page</h1>
     <p>These are the current favorite games</p>
     {{#each users }}
         <div class='entries'>
             <p class="font-weight-bold">Name: {{name}}</p>
+            <a href="/userList/{{id}}">See {{name}}'s list of games</a>
             <p>User Name: {{genre}}</p>
             <p>Date signed up: {{date}}</p>
              <!--

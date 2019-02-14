@@ -1,26 +1,28 @@
 var express = require('express');
 var exphbs = require('express-handlebars');
 var app = express();
-var port = 2000;
-var methodOverride = require("method-override");
+var port = process.env.PORT || 2000;
+var methodOverride = require('method-override');
 var path = require('path');
 var session = require('express-session');
 var passport = require('passport');
-//var flash = require('connect-flash');
+var flash = require('connect-flash');
 var router = express.Router();
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var {ensureAuthenticated} = require('./helpers/auth');
 
 
-var users = require('./routes/users')
+var users = require('./routes/users');
+
+var db = require('./config/database');
 
 require('./config/passport')(passport);
 
 mongoose.Promise = global.Promise;
 
 //connect to mongodb using mongoose 
-mongoose.connect("mongodb://localhost:27017/gameEntries", {
+mongoose.connect(db.mongoURI, {
     useMongoClient:true
 }).then(function(){
     console.log("Connected to the Monogo Database")
@@ -53,17 +55,17 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-//app.use(flash());
+app.use(flash());
 
-/*
-app.use(function(req,res){
-    res.locals.success_msg = req.flash('success');
-    res.locals.error_msg = req.flash('success_msg');
+//globals
+app.use(function(req,res, next){
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
     res.locals.error = req.flash('error');
     res.locals.user = req.user || null ;
     next();
 });
-*/
+
 
 app.use(methodOverride('_method'));
 
@@ -102,10 +104,21 @@ router.put('/editgame/:id', function(req, res){
 
         entry.save()
         .then(function(idea){
-            res.redirect('/');
+            res.redirect('/gamers');
         })
     });
 });
+
+router.get('/userList/:id', function(req,res){
+    Entry.find({
+        user:req.params.id
+    }).then(function(entries){
+        res.render('userList', {
+                entries:entries
+        })
+    });
+});
+
 
 //Route to login
 router.get('/login',function(req, res){
@@ -114,34 +127,35 @@ router.get('/login',function(req, res){
 
 router.post('/login', function(req,res,next){
     passport.authenticate('local', {
-        successRedirect:'/',
-        failureRedirect:'/users/register'
+        successRedirect:'/gamers',
+        failureRedirect:'/users/register',
+        failureFlash:true
     })(req,res,next);
 });
 
 router.get('/logout', function(req, res){
     req.logout();
+    req.flash('success_msg', "You are logged out.")
     res.redirect('/login');
 });
 
 //index route
-app.get('/', ensureAuthenticated, function(req,res){
+app.get('/gamers', ensureAuthenticated, function(req,res){
     console.log("Request made from fetch");
     Entry.find({user:req.user.id})
     .then(function(entries){
-        res.render("index", {
-            entries:entries,
-            user:req.user
+        res.render('index', {
+            entries:entries
         })
     });
 });
 
 //gamers route
-app.get('/gamers', function(req,res){
+app.get('/', function(req,res){
     console.log("Request made from fetch");
     Users.find()
     .then(function(users){
-        res.render("gamers", {
+        res.render('gamers', {
             users:users
         })
     });
@@ -164,15 +178,16 @@ app.post('/addgame', function(req,res){
     }
 
     new Entry(newEntry).save().then(function(entry){
-        res.redirect('/');
+        req.flash('success_msg', "Game Added");
+        res.redirect('/gamers');
     });
 });
 
 //Delete Game Entry
 app.delete('/:id', function(req,res){
     Entry.remove({_id:req.params.id}).then(function(){
-        //req.flash("game removed");
-        res.redirect('/');
+        req.flash('success_msg', "Game Removed");
+        res.redirect('/gamers');
     });
 });
 

@@ -1,0 +1,14 @@
+
+<div class="jumbotron text-center">
+    <h1 class="text-center">Welcome to the GameApp Page</h1>
+    <p>These are their current favorite games</p>
+    {{#each entries }}
+        <div class='entries'>
+            <p class="font-weight-bold">Game: {{title}}</p>
+            <p>genre: {{genre}}</p>
+            <p>Date signed up: {{date}}</p>
+        </div>
+        <br>
+    {{else}}
+    {{/each}}
+</div>

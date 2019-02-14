@@ -9,7 +9,9 @@
 <body>
     {{>_navbar}}
     <div class="container">
-         {{{body}}}
+        {{> _error}}
+        {{> _msg}}
+        {{{body}}}
     </div>
    
 

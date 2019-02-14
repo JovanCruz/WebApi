@@ -39,7 +39,7 @@ router.post('/register', function(req,res){
         User.findOne({email:req.body.email})
         .then(function(user){
             if(user){
-                //add flash msg
+            req.flash('error_msg', "Email Already Exists");
             res.redirect("/users/register");
             }
             else{
